@@ -5,7 +5,7 @@
       :key="sub.id"
       class="flex items-center gap-2 justify-between"
     >
-      <!-- Чекбокс -->
+      <!-- Чекбокс для отметки выполнения подзадачи -->
       <input
         type="checkbox"
         v-model="sub.status"
@@ -14,7 +14,7 @@
         @change="updateParent"
       />
 
-      <!-- Подзадача текст -->
+      <!-- Отображение текста подзадачи -->
       <template v-if="!editingIndexMap[index]">
         <div class="w-[426px] overflow-hidden">
           <p
@@ -35,7 +35,7 @@
         </button>
       </template>
 
-      <!-- Input для редактирования -->
+      <!-- Input для редактирования подзадачи -->
       <template v-else>
         <input
           v-model="localSubtasks[index].title"
@@ -62,16 +62,19 @@ const props = defineProps({
 
 const emit = defineEmits(["update"]);
 
-// Подзадачи
+// Локальная копия подзадач для редактирования
 const localSubtasks = ref([...props.subtasks]);
+
+// Карта редактируемых подзадач (индекс => true)
 const editingIndexMap = ref({});
+
+// Ссылки на input для фокуса при редактировании
 const editInputs = ref([]);
 
-// watch оставляем только для внешних изменений, чтобы не перезаписывать локальные
+// Слежение за изменениями извне, чтобы обновлять локальные данные только если изменилась длина массива
 watch(
   () => props.subtasks,
   (newVal) => {
-    // Обновляем локальные только если длинна отличается или элементы не совпадают
     if (newVal.length !== localSubtasks.value.length) {
       localSubtasks.value = [...newVal];
     }
@@ -79,6 +82,7 @@ watch(
   { deep: true }
 );
 
+// Добавление новой подзадачи
 function addSubtask() {
   const newSub = {
     id: crypto.randomUUID(),
@@ -90,20 +94,24 @@ function addSubtask() {
     updatedAt: new Date().toISOString(),
   };
 
-  // Добавляем в локальные
   localSubtasks.value.unshift(newSub);
   editingIndexMap.value[0] = true;
+
+  // Фокус на новом input после рендера
   nextTick(() => {
     if (editInputs.value[0]) editInputs.value[0].focus();
   });
 
-  // Сразу уведомляем родителя
+  // Обновляем родителя
   updateParent();
 }
+
+// Эмит изменений родителю
 function updateParent() {
   emit("update", [...localSubtasks.value]);
 }
 
+// Начало редактирования подзадачи
 function startEdit(index) {
   editingIndexMap.value[index] = true;
   nextTick(() => {
@@ -111,6 +119,7 @@ function startEdit(index) {
   });
 }
 
+// Сохранение изменений подзадачи
 function saveEdit(index) {
   const title = localSubtasks.value[index].title.trim();
   if (!title) {
@@ -120,6 +129,7 @@ function saveEdit(index) {
   updateParent();
 }
 
+// Удаление подзадачи
 function removeSubtask(index) {
   localSubtasks.value.splice(index, 1);
   updateParent();

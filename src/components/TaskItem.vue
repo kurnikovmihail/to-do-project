@@ -2,15 +2,20 @@
   <div class="border rounded-lg shadow-sm p-3 flex flex-col gap-2 hover:shadow-md transition bg-gray">
     <div class="flex justify-between items-start">
       <div class="flex-1 flex flex-col gap-2">
+        <!-- Редактируемый заголовок задачи -->
         <TaskTitle :title="task.title" @update="updateTitle" />
 
+        <!-- Статус задачи -->
         <TaskStatus :status="task.status" @update="updateStatus" />
 
+        <!-- Теги задачи -->
         <TaskTags :tags="task.tags" @update="updateTags" />
 
+        <!-- Подзадачи -->
         <SubtaskList :subtasks="task.subtasks" @update="updateSubtasks" />
       </div>
 
+      <!-- Действия: удалить или добавить подзадачу -->
       <TaskActions
         @delete="$emit('delete', task.id)"
         @addSubtask="addSubtask"
@@ -31,7 +36,7 @@ const props = defineProps({
 });
 const emit = defineEmits(["update", "delete"]);
 
-/* ---- Обновления ---- */
+/* --- Обновление данных задачи --- */
 function updateTitle(newTitle) {
   props.task.title = newTitle.trim();
   props.task.updatedAt = new Date().toISOString();
@@ -56,6 +61,7 @@ function updateSubtasks(newSubtasks) {
   emit("update", props.task);
 }
 
+/* --- Добавление новой подзадачи --- */
 function addSubtask() {
   const newSub = {
     id: crypto.randomUUID(),

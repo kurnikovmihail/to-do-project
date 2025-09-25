@@ -1,13 +1,26 @@
 <template>
   <div>
-    <!-- Кнопка показать/скрыть -->
+    <!-- Кнопка показать/скрыть панель фильтров -->
     <FilterToggle :show="showFilters" @toggle="showFilters = !showFilters" />
 
-    <!-- Панель фильтров -->
+    <!-- Панель фильтров, отображается только при showFilters -->
     <div v-if="showFilters" class="flex flex-col gap-2 mb-4">
+      <!-- Поиск по названию задачи -->
       <FilterSearch v-model="localFilters.search" @apply="applyFilters" />
-      <FilterStatus v-model="localFilters.statuses" :all-statuses="allStatuses" @apply="applyFilters" />
-      <FilterTags v-model="localFilters.tags" :all-tags="allTags" @apply="applyFilters" />
+
+      <!-- Фильтр по статусам -->
+      <FilterStatus 
+        v-model="localFilters.statuses" 
+        :all-statuses="allStatuses" 
+        @apply="applyFilters" 
+      />
+
+      <!-- Фильтр по тегам -->
+      <FilterTags 
+        v-model="localFilters.tags" 
+        :all-tags="allTags" 
+        @apply="applyFilters" 
+      />
     </div>
   </div>
 </template>
@@ -21,14 +34,14 @@ import FilterSearch from "./filters/FilterSearch.vue";
 import FilterStatus from "./filters/FilterStatus.vue";
 import FilterTags from "./filters/FilterTags.vue";
 
-const props = defineProps({
-  tasks: Array
-});
+/* --- Props и Events --- */
+const props = defineProps({ tasks: Array });
 const emit = defineEmits(["filtered-tasks"]);
 
+/* --- Панель фильтров --- */
 const showFilters = ref(false);
 
-// Загружаем сохранённые фильтры
+// Загружаем сохранённые фильтры из LocalStorage
 const data = loadData();
 const localFilters = ref({
   statuses: [...data.filters.statuses],
@@ -36,10 +49,8 @@ const localFilters = ref({
   search: data.filters.search || ""
 });
 
-// Все статусы
+/* --- Доступные статусы и уникальные теги --- */
 const allStatuses = ["todo", "in-progress", "done"];
-
-// Уникальные теги
 const allTags = computed(() => {
   const tagsSet = new Set();
   props.tasks.forEach(task => {
@@ -49,7 +60,7 @@ const allTags = computed(() => {
   return Array.from(tagsSet);
 });
 
-// Фильтрация задач
+/* --- Фильтрация задач --- */
 const filteredTasks = computed(() => {
   if (!showFilters.value) return props.tasks;
 
@@ -61,12 +72,13 @@ const filteredTasks = computed(() => {
   });
 });
 
+// Применение фильтров и уведомление родителя
 function applyFilters() {
   saveData({ projects: [{ tasks: props.tasks }], filters: localFilters.value });
   emit("filtered-tasks", filteredTasks.value);
 }
 
-// Реактивные пересчёты
+/* --- Реактивные пересчёты при изменении задач или панели --- */
 watch(() => props.tasks, applyFilters, { deep: true });
 watch(showFilters, applyFilters);
 </script>

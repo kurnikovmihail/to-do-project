@@ -1,12 +1,19 @@
 <template>
   <form @submit.prevent="submitTask" class="flex gap-2 mb-4">
+    <!-- Поле для названия задачи -->
     <input v-model="title" placeholder="Название задачи" class="border rounded px-2 py-1 flex-1"/>
+
+    <!-- Статус задачи -->
     <select v-model="status" class="border rounded px-2 py-1">
       <option value="todo">Todo</option>
       <option value="in-progress">In Progress</option>
       <option value="done">Done</option>
     </select>
+
+    <!-- Теги через запятую -->
     <input v-model="tagsInput" placeholder="Теги через запятую" class="border rounded px-2 py-1"/>
+
+    <!-- Кнопка добавления задачи -->
     <button type="submit" class="bg-blue-500 text-white px-4 py-1 rounded hover:bg-blue-600 transition">Добавить</button>
   </form>
 </template>
@@ -14,13 +21,12 @@
 <script setup>
 import { ref } from 'vue'
 
-// Для emit события
-const emit = defineEmits(['task-added'])
-
+// Локальные переменные для формы
 const title = ref('')
 const status = ref('todo')
 const tagsInput = ref('')
 
+// Генерация UUID для новой задачи (если нет внешнего пакета)
 function uuidv4() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     const r = Math.random() * 16 | 0
@@ -29,6 +35,7 @@ function uuidv4() {
   })
 }
 
+// Создаёт новую задачу и эмитит событие родителю
 function submitTask() {
   if (!title.value) return
 
@@ -42,10 +49,10 @@ function submitTask() {
     updatedAt: new Date().toISOString()
   }
 
-  // Отправляем событие в App.vue
+  // Отправляем событие в App.vue для добавления задачи в список
   emit('task-added', newTask)
 
-  // Сбрасываем форму
+  // Сбрасываем форму после добавления
   title.value = ''
   status.value = 'todo'
   tagsInput.value = ''

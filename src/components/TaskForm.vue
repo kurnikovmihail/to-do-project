@@ -1,5 +1,5 @@
 <template>
-  <form @submit.prevent="submitTask" class="flex gap-2 mb-4">
+  <form @submit.prevent="submitTask" class="flex gap-2 mb-4 mt-4">
     <!-- Поле для названия задачи -->
     <input v-model="title" placeholder="Название задачи" class="border rounded px-2 py-1 flex-1"/>
 
@@ -26,7 +26,10 @@ const title = ref('')
 const status = ref('todo')
 const tagsInput = ref('')
 
-// Генерация UUID для новой задачи (если нет внешнего пакета)
+// События для родителя
+const emit = defineEmits(['task-added'])
+
+// Генерация UUID для новой задачи
 function uuidv4() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     const r = Math.random() * 16 | 0
@@ -49,7 +52,6 @@ function submitTask() {
     updatedAt: new Date().toISOString()
   }
 
-  // Отправляем событие в App.vue для добавления задачи в список
   emit('task-added', newTask)
 
   // Сбрасываем форму после добавления

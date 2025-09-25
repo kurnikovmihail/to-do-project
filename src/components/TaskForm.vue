@@ -1,5 +1,5 @@
 <template>
-  <form @submit.prevent="addTask" class="flex gap-2">
+  <form @submit.prevent="submitTask" class="flex gap-2 mb-4">
     <input v-model="title" placeholder="Название задачи" class="border rounded px-2 py-1 flex-1"/>
     <select v-model="status" class="border rounded px-2 py-1">
       <option value="todo">Todo</option>
@@ -13,18 +13,25 @@
 
 <script setup>
 import { ref } from 'vue'
-import { v4 as uuidv4 } from 'uuid'
-import { saveData, loadData } from '../utils/storage.js'
+
+// Для emit события
+const emit = defineEmits(['task-added'])
 
 const title = ref('')
 const status = ref('todo')
 const tagsInput = ref('')
 
-const data = loadData()
-const projects = data.projects.length ? data.projects : [{ id: uuidv4(), name: 'Default', tasks: [] }]
+function uuidv4() {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+    const r = Math.random() * 16 | 0
+    const v = c === 'x' ? r : (r & 0x3 | 0x8)
+    return v.toString(16)
+  })
+}
 
-function addTask() {
+function submitTask() {
   if (!title.value) return
+
   const newTask = {
     id: uuidv4(),
     title: title.value,
@@ -32,13 +39,15 @@ function addTask() {
     tags: tagsInput.value.split(',').map(t => t.trim()).filter(Boolean),
     subtasks: [],
     createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
   }
-  projects[0].tasks.push(newTask)
-  saveData({ projects, filters: data.filters })
 
+  // Отправляем событие в App.vue
+  emit('task-added', newTask)
+
+  // Сбрасываем форму
   title.value = ''
-  tagsInput.value = ''
   status.value = 'todo'
+  tagsInput.value = ''
 }
 </script>
